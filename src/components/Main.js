@@ -14,7 +14,7 @@ export default function Main({
     const [cards, setCards] = React.useState([]);
 
     React.useEffect(() => {
-        api.getAppInfo()
+        api.getInitialCards()
             .then(([cardData, userData]) => {
                 setUserName(userData.name);
                 setUserDescription(userData.about);
