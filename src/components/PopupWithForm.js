@@ -19,7 +19,7 @@ export default function PopupWithForm({
                     onClick={onClose}
                 />
                 <h3 className='modal__title'>{title}</h3>
-                <form className='modal__form' name={name} noValidate>
+                <form className='modal__form' name={name}>
                     {children}
                     <button type='submit' className='button modal__button'>
                         {buttonText}

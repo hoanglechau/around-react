@@ -36,7 +36,6 @@ export default function Main({
                         alt='Avatar'
                         className='profile__avatar'
                     />
-                    <button className='profile__avatar-edit' type='button' />
                 </div>
 
                 <div className='profile__info'>
@@ -54,8 +53,8 @@ export default function Main({
                     onClick={onAddPlaceClick}
                 />
             </section>
-            <section className='gallery page__section'>
-                <ul className='cards'>
+            <section className='page__section'>
+                <ul className='gallery'>
                     {cards.map((card) => (
                         <Card
                             key={card._id}
