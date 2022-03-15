@@ -2,8 +2,12 @@ import React from 'react';
 import Header from './Header';
 import Main from './Main';
 import Footer from './Footer';
-import PopupWithForm from './PopupWithForm';
 import ImagePopup from './ImagePopup';
+import api from '../utils/api';
+import { CurrentUserContext } from '../contexts/CurrentUserContext';
+import EditProfilePopup from './EditProfilePopup';
+import EditAvatarPopup from './EditAvatarPopup';
+import AddPlacePopup from './AddPlacePopup';
 
 export default function App() {
     const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] =
@@ -12,6 +16,18 @@ export default function App() {
     const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] =
         React.useState(false);
     const [selectedCard, setSelectedCard] = React.useState(null);
+    const [cards, setCards] = React.useState([]);
+
+    const [currentUser, setCurrentUser] = React.useState({});
+
+    React.useEffect(() => {
+        api.getInitialCards()
+            .then(([cardData, userData]) => {
+                setCurrentUser(userData);
+                setCards(cardData);
+            })
+            .catch((err) => console.log(err));
+    }, []);
 
     function handleEditProfileClick() {
         setIsEditProfilePopupOpen(true);
@@ -36,110 +52,87 @@ export default function App() {
         setSelectedCard(card);
     }
 
+    function handleUpdateUser(userUpdate) {
+        api.setUserInfo(userUpdate)
+            .then((newUserData) => {
+                setCurrentUser(newUserData);
+                closeAllPopups();
+            })
+            .catch((err) => console.log(err));
+    }
+
+    function handleUpdateAvatar(avatarUpdate) {
+        api.setUserAvatar(avatarUpdate)
+            .then((newUserData) => {
+                setCurrentUser(newUserData);
+                closeAllPopups();
+            })
+            .catch((err) => console.log(err));
+    }
+
+    function handleCardLike(card) {
+        const isLiked = card.likes.some((i) => i._id === currentUser._id);
+        api.changeLikeStatus(card._id, !isLiked)
+            .then((newCard) => {
+                setCards((cards) => {
+                    cards.map((c) => (c._id === card._id ? newCard : c));
+                });
+            })
+            .catch((err) => console.log(err));
+    }
+
+    function handleCardDelete(card) {
+        api.removeCard(card._id)
+            .then(() => {
+                setCards((cards) => cards.filter((c) => c._id !== card._id));
+            })
+            .catch((err) => console.log(err));
+    }
+
+    function handleAddPlaceSubmit(newCard) {
+        api.addCard(newCard)
+            .then((newCardFull) => {
+                setCards([newCardFull, ...cards]);
+                closeAllPopups();
+            })
+            .catch((err) => console.log(err));
+    }
+
     return (
-        <div className='page'>
-            <Header />
-            <Main
-                onEditProfileClick={handleEditProfileClick}
-                onAddPlaceClick={handleAddPlaceClick}
-                onEditAvatarClick={handleEditAvatarClick}
-                onCardClick={handleCardClick}
-            />
-            <Footer />
+        <CurrentUserContext.Provider value={currentUser}>
+            <div className='page'>
+                <Header />
+                <Main
+                    cards={cards}
+                    onEditProfileClick={handleEditProfileClick}
+                    onAddPlaceClick={handleAddPlaceClick}
+                    onEditAvatarClick={handleEditAvatarClick}
+                    onCardClick={handleCardClick}
+                    onCardLike={handleCardLike}
+                    onCardDelete={handleCardDelete}
+                />
+                <Footer />
 
-            <PopupWithForm
-                title='Edit Profile'
-                name='edit'
-                isOpen={isEditProfilePopupOpen}
-                onClose={closeAllPopups}
-            >
-                <label className='modal__field'>
-                    <input
-                        type='text'
-                        name='name'
-                        id='name-input'
-                        className='modal__input modal__input_type_name'
-                        placeholder='Name'
-                        required
-                        minLength='2'
-                        maxLength='40'
-                        pattern='[a-zA-Z -]{1,}'
-                    />
-                    <span className='modal__error' id='name-input-error' />
-                </label>
-                <label className='modal__field'>
-                    <input
-                        type='text'
-                        name='about'
-                        id='about-input'
-                        className='modal__input modal__input_type_description'
-                        placeholder='About Me'
-                        required
-                        minLength='2'
-                        maxLength='200'
-                    />
-                    <span className='modal__error' id='about-input-error' />
-                </label>
-            </PopupWithForm>
+                <EditProfilePopup
+                    isOpen={isEditProfilePopupOpen}
+                    onUpdateUser={handleUpdateUser}
+                    onClose={closeAllPopups}
+                />
 
-            <PopupWithForm
-                title='New Place'
-                name='new-card'
-                isOpen={isAddPlacePopupOpen}
-                onClose={closeAllPopups}
-            >
-                <label className='modal__field'>
-                    <input
-                        type='text'
-                        name='title'
-                        id='title-input'
-                        className='modal__input modal__input_type_card-name'
-                        placeholder='Title'
-                        required
-                        minLength='1'
-                        maxLength='30'
-                    />
-                    <span className='modal__error' id='title-input-error' />
-                </label>
-                <label className='modal__field'>
-                    <input
-                        type='url'
-                        name='link'
-                        id='link-input'
-                        className='modal__input modal__input_type_url'
-                        placeholder='Image URL'
-                        required
-                    />
-                    <span className='modal__error' id='link-input-error' />
-                </label>
-            </PopupWithForm>
+                <AddPlacePopup
+                    isOpen={isAddPlacePopupOpen}
+                    onAddPlace={handleAddPlaceSubmit}
+                    onClose={closeAllPopups}
+                />
 
-            <PopupWithForm
-                title='Are you sure?'
-                name='remove-card'
-                buttonText='Yes'
-            />
+                <EditAvatarPopup
+                    isOPen={isEditAvatarPopupOpen}
+                    onUpdateAvatar={handleUpdateAvatar}
+                    onClose={closeAllPopups}
+                />
 
-            <PopupWithForm
-                title='Change profile picture'
-                name='edit-avatar'
-                isOpen={isEditAvatarPopupOpen}
-                onClose={closeAllPopups}
-            >
-                <label className='modal__field'>
-                    <input
-                        type='url'
-                        name='link'
-                        id='avatar-input'
-                        className='modal__input modal__input_type_description'
-                        placeholder='Image URL'
-                        required
-                    />
-                    <span className='modal__error' id='avatar-input-error' />
-                </label>
-            </PopupWithForm>
-
-            <ImagePopup card={selectedCard} onClose={closeAllPopups} />
-        </div>
+                <ImagePopup card={selectedCard} onClose={closeAllPopups} />
+            </div>
+        </CurrentUserContext.Provider>
     );
 }
