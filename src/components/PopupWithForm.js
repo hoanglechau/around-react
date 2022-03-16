@@ -12,12 +12,7 @@ export default function PopupWithForm({
     return (
         <div className={`modal modal_type_${name} ${isOpen && 'modal_open'}`}>
             <div className='modal__content'>
-                <form
-                    className='modal__form'
-                    name={name}
-                    noValidate
-                    onSubmit={onSubmit}
-                >
+                <form className='modal__form' name={name} onSubmit={onSubmit}>
                     <button
                         type='button'
                         className='modal__close'

@@ -48,6 +48,18 @@ export default function App() {
         setSelectedCard(null);
     }
 
+    React.useEffect(() => {
+        const closeByEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeAllPopups();
+            }
+        };
+
+        document.addEventListener('keydown', closeByEscape);
+
+        return () => document.removeEventListener('keydown', closeByEscape);
+    }, []);
+
     function handleCardClick(card) {
         setSelectedCard(card);
     }
@@ -74,9 +86,9 @@ export default function App() {
         const isLiked = card.likes.some((i) => i._id === currentUser._id);
         api.changeLikeStatus(card._id, !isLiked)
             .then((newCard) => {
-                setCards((cards) => {
-                    cards.map((c) => (c._id === card._id ? newCard : c));
-                });
+                setCards((cards) =>
+                    cards.map((c) => (c._id === card._id ? newCard : c))
+                );
             })
             .catch((err) => console.log(err));
     }
@@ -126,7 +138,7 @@ export default function App() {
                 />
 
                 <EditAvatarPopup
-                    isOPen={isEditAvatarPopupOpen}
+                    isOpen={isEditAvatarPopupOpen}
                     onUpdateAvatar={handleUpdateAvatar}
                     onClose={closeAllPopups}
                 />
